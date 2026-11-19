@@ -1,50 +1,40 @@
 #include <SPI.h>
-#include "RF24.h"
-#include <printf.h>
+#include <RF24.h>
 
-RF24 radio(9, 10);
-
-const byte ADDR[] = {0x5E, 0x5B, 0xBE, 0x8F, 0x8B};
+RF24 radio(9, 10); // CE, CSN
+const byte address[5] = {0x12, 0x34, 0x56, 0x78, 0x9A};
 
 uint32_t counter = 0;
 
 void setup() {
-  Serial.begin(9600);
-  while(!Serial);
-  Serial.println("Hello!");
+  Serial.begin(115200);
 
-  if (!radio.begin()) {
-    Serial.println("Radio init failed!");
-    while (true);
-  }
-  while (!radio.isChipConnected()) {
-    Serial.println("Radio not connected...");
+  while (!radio.begin()) {
+    Serial.println(F("Radio initialization failed; retrying..."));
     delay(1000);
   }
+  while (!radio.isChipConnected()) {
+    Serial.println(F("Radio chip not connected; retrying..."));
+    delay(1000);
+  }
+
   radio.setChannel(76);
   radio.setDataRate(RF24_250KBPS);
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_LOW);
   radio.setCRCLength(RF24_CRC_16);
   radio.setAutoAck(true);
   radio.setRetries(5, 15);
-  Serial.println("Radio connected!");
-
-  radio.setStatusFlags(RF24_IRQ_NONE);
-
-  radio.openReadingPipe(0,ADDR);
+  radio.setPayloadSize(sizeof(counter));
+  radio.openReadingPipe(1, address);
   radio.startListening();
-  Serial.println("Listening...");
 
-  printf_begin();
-  radio.printDetails();
+  Serial.println(F("Car listening."));
 }
 
 void loop() {
-  while (radio.available()) {
+  if (radio.available()) {
     radio.read(&counter, sizeof(counter));
-    Serial.print("Got: ");
-    Serial.print(counter, DEC);
-    Serial.println();
+    Serial.print(F("Received: "));
+    Serial.println(counter);
   }
-  Serial.print("Empty");
 }
