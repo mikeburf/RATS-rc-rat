@@ -6,7 +6,7 @@ RF24 radio(9, 10);
 
 const byte ADDR[] = {0x5E, 0x5B, 0xBE, 0x8F, 0x8B};
 
-byte buf[] = {0};
+uint32_t counter = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -39,14 +39,15 @@ void setup() {
 }
 
 void loop() {
-  buf[0]++;
+  counter++;
   Serial.print("Send ");
-  Serial.print(buf[0]);
-  if (radio.write(buf, 1)) {
+  Serial.print(counter);
+  if (radio.write(&counter, sizeof(counter))) {
     Serial.println(" successful!");
   }
   else {
     Serial.println(" failed!");
   }
+  radio.printDetails();
   delay(1000);
 }
