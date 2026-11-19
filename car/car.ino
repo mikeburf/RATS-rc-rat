@@ -6,7 +6,7 @@ RF24 radio(9, 10);
 
 const byte ADDR[] = {0x5E, 0x5B, 0xBE, 0x8F, 0x8B};
 
-byte data[1];
+uint32_t counter = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -40,13 +40,11 @@ void setup() {
 }
 
 void loop() {
-  if (radio.available()) {
-    radio.read(data, sizeof(data));
+  while (radio.available()) {
+    radio.read(&counter, sizeof(counter));
     Serial.print("Got: ");
-    for (int i = 0; i < sizeof(data); i++) {
-      Serial.print(data[i], DEC);
-      Serial.print(" ");
-    }
+    Serial.print(counter, DEC);
     Serial.println();
   }
+  Serial.print("Empty");
 }
